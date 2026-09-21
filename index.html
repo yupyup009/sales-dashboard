@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>거래처별 매출 대시보드</title>
+<style>
+:root{
+  --paper:#eef2f3; --surface:#ffffff; --ink:#12262d; --muted:#5a6f77;
+  --line:#d5dfe3; --line-soft:#e6edf0;
+  --accent:#0d7686; --accent-ink:#ffffff; --accent-soft:#dff0f3;
+  --h0:#F0F9FF; --h1:#E0F2FE; --h2:#CBEBFD; --h3:#B0E0FB; --h4:#94D3F8; --h5:#78C4F3; --h6:#5DB4EC; --h7:#46A3E0; --h8:#3592D2; --h9:#2A82C2; --x0:var(--ink); --x1:var(--ink); --x2:var(--ink); --x3:var(--ink); --x4:var(--ink); --x5:var(--ink); --x6:var(--ink); --x7:var(--ink); --x8:#ffffff; --x9:#ffffff;
+  --key-bg:#fff3d2; --key-line:#e3a72f; --key-ink:#5c3f00;
+  --warn:#9a5b00; --warn-bg:#fff4dc; --danger:#b3261e;
+  --head:#0c2a32; --head-ink:#e9f4f6;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#0d171b; --surface:#142127; --ink:#e4eef1; --muted:#8fa5ad;
+    --line:#28393f; --line-soft:#1f2f35;
+    --accent:#4cc2d2; --accent-ink:#06262c; --accent-soft:#17363d;
+    --h0:#12324A; --h1:#164059; --h2:#1A4F6D; --h3:#1E5E82; --h4:#226E97; --h5:#2A80AE; --h6:#3A93C4; --h7:#55A7D6; --h8:#7BBCE4; --h9:#A3D2F0; --x0:#ffffff; --x1:#ffffff; --x2:#ffffff; --x3:#ffffff; --x4:#ffffff; --x5:#ffffff; --x6:#062033; --x7:#062033; --x8:#062033; --x9:#062033;
+    --key-bg:#3a3117; --key-line:#c99a2b; --key-ink:#ffe3a0;
+    --warn:#f0c36a; --warn-bg:#3a2f14; --danger:#ff8a80;
+    --head:#091216; --head-ink:#e4eef1; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0d171b; --surface:#142127; --ink:#e4eef1; --muted:#8fa5ad;
+  --line:#28393f; --line-soft:#1f2f35;
+  --accent:#4cc2d2; --accent-ink:#06262c; --accent-soft:#17363d;
+  --h0:#12324A; --h1:#164059; --h2:#1A4F6D; --h3:#1E5E82; --h4:#226E97; --h5:#2A80AE; --h6:#3A93C4; --h7:#55A7D6; --h8:#7BBCE4; --h9:#A3D2F0; --x0:#ffffff; --x1:#ffffff; --x2:#ffffff; --x3:#ffffff; --x4:#ffffff; --x5:#ffffff; --x6:#062033; --x7:#062033; --x8:#062033; --x9:#062033;
+  --key-bg:#3a3117; --key-line:#c99a2b; --key-ink:#ffe3a0;
+  --warn:#f0c36a; --warn-bg:#3a2f14; --danger:#ff8a80;
+  --head:#091216; --head-ink:#e4eef1; color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);
+  font-family:"Pretendard Variable","Pretendard","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic","맑은 고딕",system-ui,sans-serif;
+  font-size:14px;line-height:1.5;font-variant-numeric:tabular-nums}
+button,input,textarea,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+[hidden]{display:none!important}
+
+/* header */
+.top{background:var(--head);color:var(--head-ink);padding:14px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.top h1{margin:0;font-size:18px;font-weight:700;letter-spacing:-.01em}
+.top .privacy{font-size:12px;opacity:.72}
+.top .sp{flex:1}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:7px 13px;font-weight:600;font-size:13px}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.ghost{background:transparent;color:inherit;border-color:rgba(255,255,255,.28)}
+.btn.small{padding:4px 10px;font-size:12px;border-radius:6px}
+main{max-width:1440px;margin:0 auto;padding:20px 24px 80px}
+
+/* upload */
+.dropzone{border:2px dashed var(--line);border-radius:14px;background:var(--surface);padding:56px 24px;text-align:center;transition:border-color .15s,background .15s}
+body.drag .dropzone,.dropzone:hover{border-color:var(--accent);background:var(--accent-soft)}
+.dropzone svg{width:44px;height:44px;stroke:var(--accent);fill:none;stroke-width:1.6}
+.dropzone h2{margin:12px 0 4px;font-size:20px}
+.dropzone p{margin:0 0 18px;color:var(--muted)}
+.dropzone .row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.hint-cols{margin:18px auto 0;max-width:640px;font-size:12px;color:var(--muted)}
+.filebar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:9px 14px;margin-bottom:16px}
+.filebar .fname{font-weight:700}
+.filebar .meta{color:var(--muted);font-size:12px}
+.filebar .sp{flex:1}
+.notice{margin:0 0 14px;padding:9px 14px;border-radius:8px;background:var(--warn-bg);color:var(--warn);font-size:13px;border:1px solid var(--key-line)}
+.notice.err{color:var(--danger);border-color:var(--danger)}
+
+/* panels */
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin-bottom:14px;box-shadow:0 1px 2px rgba(12,42,50,.05)}
+.panel>h2,.panel>summary h2{margin:0;font-size:15px}
+.selgrid{display:grid;grid-template-columns:minmax(300px,1.6fr) minmax(160px,.7fr) minmax(320px,1.5fr);gap:22px}
+@media (max-width:980px){.selgrid{grid-template-columns:1fr}}
+.field>label.t,.field>.t{display:flex;align-items:center;justify-content:space-between;font-weight:700;margin-bottom:7px;font-size:13px}
+.field .t .btn{font-weight:600}
+.checks{display:flex;flex-wrap:wrap;gap:6px 8px}
+.check{display:inline-flex;align-items:center;gap:6px;padding:4px 10px 4px 8px;border:1px solid var(--line);border-radius:6px;background:var(--paper);cursor:pointer;user-select:none;font-size:13px}
+.check:has(input:checked){border-color:var(--accent);background:var(--accent-soft)}
+.check input{accent-color:var(--accent);margin:0}
+
+/* combobox */
+.combo{position:relative}
+.combo-box{display:flex;flex-wrap:wrap;gap:5px;align-items:center;border:1px solid var(--line);border-radius:8px;padding:5px 7px;background:var(--paper);min-height:40px}
+.combo-box:focus-within{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
+.combo-box input{flex:1;min-width:150px;border:0;background:transparent;outline:0;padding:4px 2px}
+.chip{display:inline-flex;align-items:center;gap:4px;background:var(--accent);color:var(--accent-ink);border-radius:999px;padding:2px 4px 2px 11px;font-size:13px;font-weight:600}
+.chip button{border:0;background:rgba(255,255,255,.22);color:inherit;border-radius:50%;width:19px;height:19px;line-height:1;padding:0;font-size:14px}
+.chip button:hover{background:rgba(255,255,255,.4)}
+.combo-list{position:absolute;z-index:30;left:0;right:0;top:calc(100% + 4px);max-height:300px;overflow:auto;margin:0;padding:4px;list-style:none;background:var(--surface);border:1px solid var(--line);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.18)}
+.combo-list li{padding:7px 10px;border-radius:6px;cursor:pointer;display:flex;justify-content:space-between;gap:10px}
+.combo-list li[aria-selected="true"]{font-weight:700}
+.combo-list li[aria-selected="true"]::after{content:"✓";color:var(--accent)}
+.combo-list li:hover,.combo-list li.act{background:var(--accent-soft)}
+.combo-list li .code{color:var(--muted);font-size:12px;margin-left:auto;margin-right:8px}
+.combo-list li.empty,.combo-list li.more{cursor:default;color:var(--muted);justify-content:center}
+.combo-list li.empty:hover,.combo-list li.more:hover{background:none}
+
+/* core settings */
+details.panel>summary{cursor:pointer;display:flex;align-items:center;gap:12px;list-style:none}
+details.panel>summary::-webkit-details-marker{display:none}
+details.panel>summary::before{content:"▸";color:var(--muted);transition:transform .15s}
+details.panel[open]>summary::before{transform:rotate(90deg)}
+.csum{color:var(--muted);font-size:12px;font-weight:400}
+.corerow{display:grid;grid-template-columns:minmax(200px,1.2fr) minmax(120px,.6fr) minmax(260px,2fr) 32px;gap:10px 14px;align-items:start;padding:12px 0;border-top:1px solid var(--line-soft)}
+@media (max-width:900px){.corerow{grid-template-columns:1fr 1fr 32px}.corerow .mstat{grid-column:1/-1}}
+.corerow:first-child{border-top:0}
+.f{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--muted)}
+.f input,.pick{border:1px solid var(--line);background:var(--paper);border-radius:6px;padding:6px 9px;color:var(--ink);font-size:13px}
+.icon{border:1px solid var(--line);background:var(--paper);border-radius:6px;width:30px;height:30px;margin-top:17px;font-size:16px;line-height:1}
+.icon:hover{color:var(--danger);border-color:var(--danger)}
+.mstat{font-size:13px;padding-top:2px}
+.mstat .ok{color:var(--accent);font-weight:700}
+.mstat .mm{display:inline-block;background:var(--accent-soft);border-radius:4px;padding:1px 7px;margin:2px 4px 2px 0;font-size:12px}
+.mstat .bad{color:var(--warn);font-weight:700}
+.mstat .cand{display:inline-block;border:1px dashed var(--key-line);background:var(--key-bg);color:var(--key-ink);border-radius:6px;padding:2px 9px;margin:3px 5px 0 0;font-size:12px}
+.mstat .cand:hover{border-style:solid}
+.mstat .line{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;margin-top:4px;font-size:12px;color:var(--muted)}
+.mstat .link{border:0;background:none;color:var(--accent);text-decoration:underline;padding:0;font-size:12px}
+.pick{width:190px;font-size:12px;padding:3px 7px}
+.coretools{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;align-items:center}
+.coretools .note{color:var(--muted);font-size:12px}
+
+/* results */
+.cust{background:var(--surface);border:1px solid var(--line);border-top:4px solid var(--accent);border-radius:10px;padding:20px 22px 24px;margin-bottom:22px}
+.cust-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.cust-head h2{margin:0;font-size:28px;letter-spacing:-.02em;line-height:1.2}
+.cust-head .code{color:var(--muted);font-size:13px}
+.cust h3{margin:22px 0 10px;font-size:15px}
+.cust h3 small{font-weight:400;color:var(--muted);margin-left:6px}
+.ycards{display:flex;gap:10px;flex-wrap:wrap}
+.ycard{min-width:170px;flex:1 1 170px;max-width:280px;border:1px solid var(--line);border-radius:8px;padding:10px 14px;background:var(--paper)}
+.ycard .yl{display:block;color:var(--muted);font-size:12px}
+.ycard strong{font-size:24px;letter-spacing:-.02em}
+.ycard .yu{display:block;margin-top:2px;font-size:13px;font-weight:600;color:var(--accent)}
+.ycard strong small{font-size:13px;font-weight:600;margin-left:2px;color:var(--muted)}
+.empty{border:1px dashed var(--line);border-radius:10px;padding:26px;text-align:center;color:var(--muted);background:var(--surface)}
+.empty b{display:block;font-size:16px;color:var(--ink);margin-bottom:3px}
+.empty.small{padding:16px;background:var(--paper)}
+.scroll{overflow-x:auto;border:1px solid var(--line);border-radius:8px}
+table.t{border-collapse:separate;border-spacing:0;width:100%;font-size:13px}
+.t th,.t td{padding:7px 10px;border-bottom:1px solid var(--line-soft);white-space:nowrap;text-align:right;background:var(--surface)}
+.t thead th{background:var(--paper);font-weight:700;border-bottom:1px solid var(--line);padding:0}
+.t thead th.plain{padding:7px 10px}
+.t thead button{width:100%;border:0;background:none;padding:8px 10px;font-weight:700;text-align:inherit;display:flex;gap:4px;justify-content:flex-end;align-items:center}
+.t thead th.l button{justify-content:flex-start}
+.t thead button:hover{color:var(--accent)}
+.t thead th[aria-sort="ascending"] button::after{content:"▲";font-size:9px;color:var(--accent)}
+.t thead th[aria-sort="descending"] button::after{content:"▼";font-size:9px;color:var(--accent)}
+.t th.l,.t td.l{text-align:left}
+.t th.off,.t td.off{opacity:.38}
+.t td.name,.t th.name{position:-webkit-sticky;position:sticky;left:0;z-index:2;min-width:110px;max-width:220px;white-space:normal;text-align:left;box-shadow:1px 0 0 var(--line)}
+.t thead th.name{z-index:3}
+.t td.name .nm{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.t td.name .code,.sub{display:block;color:var(--muted);font-size:11px;font-weight:400}
+.t td.m{min-width:52px;color:var(--ink)}
+.t td.m.b0,.t tr.key td.m.b0{background:var(--h0);color:var(--x0)}
+.t td.m.b1,.t tr.key td.m.b1{background:var(--h1);color:var(--x1)}
+.t td.m.b2,.t tr.key td.m.b2{background:var(--h2);color:var(--x2)}
+.t td.m.b3,.t tr.key td.m.b3{background:var(--h3);color:var(--x3)}
+.t td.m.b4,.t tr.key td.m.b4{background:var(--h4);color:var(--x4)}
+.t td.m.b5,.t tr.key td.m.b5{background:var(--h5);color:var(--x5)}
+.t td.m.b6,.t tr.key td.m.b6{background:var(--h6);color:var(--x6)}
+.t td.m.b7,.t tr.key td.m.b7{background:var(--h7);color:var(--x7)}
+.t td.m.b8,.t tr.key td.m.b8{background:var(--h8);color:var(--x8)}
+.t td.m.b9,.t tr.key td.m.b9{background:var(--h9);color:var(--x9)}
+.t td.m.z{background:var(--surface);color:var(--muted)}
+.t tr.key td{background:var(--key-bg)}
+.t tr.key td.m.z{background:var(--key-bg)}
+.t tr.key td.name{box-shadow:inset 3px 0 0 var(--key-line),1px 0 0 var(--line)}
+.t tbody tr:last-child td{border-bottom:0}
+.badge{background:var(--key-line);color:#2b1c00;font-size:11px;font-weight:800;border-radius:4px;padding:0 6px;line-height:18px}
+.abbr{font-size:11px;color:var(--key-ink);opacity:.85}
+.tbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:22px 0 8px;flex-wrap:wrap}
+.tbar h3{margin:0}
+.core-sum{margin-top:14px}
+.core-sum h4{margin:0 0 6px;font-size:13px}
+.core-sum td.none{text-align:left;color:var(--muted);font-weight:600}
+.mini tbody td:first-child,.mini thead th:first-child{text-align:left}
+.foot{color:var(--muted);font-size:12px;margin-top:6px}
+
+/* briefing */
+.brief{border:1px solid var(--line);border-radius:8px;padding:12px 14px;margin-top:12px;background:var(--paper)}
+.brief-h{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap}
+.brief-h h3{margin:0;font-size:15px}
+.brief-h .btns{display:flex;gap:6px;align-items:center}
+.brief textarea{width:100%;min-height:118px;resize:vertical;border:1px solid var(--line);border-radius:6px;padding:10px 12px;background:var(--surface);line-height:1.7;font-size:14px}
+.briefing{margin-top:8px}
+#busy{position:fixed;inset:0;background:rgba(0,0,0,.35);display:grid;place-items:center;z-index:100;color:#fff;font-weight:700}
+#busy div{background:var(--head);padding:16px 26px;border-radius:10px}
+@media (max-width:640px){
+  main{padding:14px 10px 60px}
+  .cust{padding:14px 12px 18px}
+  .cust-head h2{font-size:22px}
+  .t td.name,.t th.name{min-width:76px;max-width:120px;font-size:12px}
+  .t th,.t td{padding:6px 8px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header class="top">
+  <h1>거래처별 매출 대시보드</h1>
+  <span class="privacy">엑셀 데이터는 이 브라우저 안에서만 처리되며 외부로 전송되지 않습니다</span>
+  <span class="sp"></span>
+  <button class="btn ghost small" data-action="theme" title="화면 테마 전환">테마: 자동</button>
+</header>
+
+<main>
+  <div id="msg"></div>
+
+  <section id="upload">
+    <div class="dropzone" id="dropzone">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4m0 0L7.5 8.5M12 4l4.5 4.5M4 16v3a1 1 0 001 1h14a1 1 0 001-1v-3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <h2>엑셀 파일을 여기에 끌어다 놓으세요</h2>
+      <p>시트 2개(연도별 매출 / 품목별 매출)가 들어 있는 .xlsx 파일</p>
+      <div class="row">
+        <button class="btn primary" data-action="pick-file">파일 선택</button>
+        <button class="btn" data-action="sample">샘플 데이터로 보기</button>
+      </div>
+      <p class="hint-cols">컬럼명은 앞뒤 공백·대소문자가 달라도 인식합니다. (납품처코드 / 납품처명 / 품목명 / 합계: Sales / 합계: Unit / Fiscal Year / Fiscal MM)</p>
+    </div>
+  </section>
+
+  <div id="app" hidden>
+    <div class="filebar" id="filebar"></div>
+    <div id="warns"></div>
+
+    <section class="panel" id="selectors" aria-label="조회 조건">
+      <div class="selgrid">
+        <div class="field combo" id="comboWrap">
+          <label class="t" for="custSearch"><span>거래처</span><button class="btn small" type="button" data-action="clear-cust">선택 모두 해제</button></label>
+          <div class="combo-box" id="comboBox">
+            <span id="chips" style="display:contents"></span>
+            <input id="custSearch" type="text" autocomplete="off" placeholder="거래처명 또는 코드 검색" role="combobox" aria-expanded="false" aria-controls="custList" aria-autocomplete="list">
+          </div>
+          <ul id="custList" class="combo-list" role="listbox" aria-multiselectable="true" hidden></ul>
+        </div>
+        <div class="field">
+          <div class="t"><span>연도</span></div>
+          <div class="checks" id="yearChecks"></div>
+        </div>
+        <div class="field">
+          <div class="t"><span>Fiscal MM <span style="font-weight:400;color:var(--muted)">(4월 시작)</span></span><button class="btn small" type="button" data-action="toggle-mm">전체 선택/해제</button></div>
+          <div class="checks" id="mmChecks"></div>
+        </div>
+      </div>
+    </section>
+
+    <details class="panel" id="corePanel">
+      <summary><h2>핵심 품목 설정</h2><span class="csum" id="coreSummary"></span></summary>
+      <div id="coreRows"></div>
+      <div class="coretools">
+        <button class="btn small" data-action="core-add">+ 핵심 품목 추가</button>
+        <button class="btn small" data-action="core-reset">기본값으로 되돌리기</button>
+        <span class="note">이름이 엑셀의 품목명과 조금 달라도 자동으로 찾습니다. 매칭 결과를 확인하고, 틀리면 후보를 눌러 바로잡으세요.</span>
+      </div>
+      <datalist id="itemList"></datalist>
+    </details>
+
+    <section id="results" aria-live="polite"></section>
+
+    <section class="panel briefing" id="briefing">
+      <h2>브리핑용 정리본</h2>
+      <div id="briefBody"></div>
+    </section>
+  </div>
+</main>
+
+<input type="file" id="fileInput" accept=".xlsx,.xlsm,.xls" hidden>
+<div id="busy" hidden><div>파일을 읽는 중…</div></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+(() => {
+'use strict';
+
+/* ================= 유틸 ================= */
+const $ = (s, el = document) => el.querySelector(s);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const str = v => v == null ? '' : String(v).trim();
+const toNum = v => {
+  if (typeof v === 'number') return isFinite(v) ? v : 0;
+  if (v == null || v === '') return 0;
+  const n = parseFloat(String(v).replace(/[,\s원]/g, ''));
+  return isFinite(n) ? n : 0;
+};
+const fmt = n => { let r = Math.round(n); if (Object.is(r, -0) || !isFinite(r)) r = 0; return r.toLocaleString('en-US'); };
+const calMonth = mm => ((mm + 2) % 12) + 1;           // 1→4월 … 10→1월 … 12→3월
+const monthLabel = mm => calMonth(mm) + '월';
+const MM_ORDER = [1,2,3,4,5,6,7,8,9,10,11,12];
+const debounce = (fn, ms) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
+const TARGET_DEFAULT = 'Y2627';
+const yearTip = y => { const yy = parseInt(y.slice(1, 3), 10); return isNaN(yy) ? '' : `20${String(yy).padStart(2,'0')}년 4월 ~ 20${String(yy+1).padStart(2,'0')}년 3월`; };
+
+/* 조사(은/는) */
+function hasBatchim(w) {
+  w = String(w).replace(/[^0-9A-Za-z\u3131-\u318e\uac00-\ud7a3]+$/, '');
+  if (!w) return false;
+  const ch = w[w.length - 1], code = ch.charCodeAt(0);
+  if (code >= 0xac00 && code <= 0xd7a3) return (code - 0xac00) % 28 !== 0;
+  if (/[0-9]/.test(ch)) return '013678'.includes(ch);
+  if (/[A-Za-z]/.test(ch)) return 'lmnr'.includes(ch.toLowerCase());
+  return false;
+}
+const eunneun = w => hasBatchim(w) ? '은' : '는';
+
+/* 품목명 자동 축약: Phonak Audeo I50-R → I50, L70-312 → L70-312, I90-Sphere → 스피어90, S9-RX → RX9 */
+function shortName(name) {
+  const parts = String(name).split(/[\s\-_]+/).filter(Boolean);
+  const line = /virto/i.test(name) ? 'Virto ' : '';        // Virto는 Audeo와 모델 코드(I90 등)가 겹치므로 라인명을 붙임
+  for (let i = 0; i < parts.length; i++) {
+    const m = /^([A-Za-z])(\d{1,3})([A-Za-z0-9]*)$/.exec(parts[i]);
+    if (!m) continue;
+    const L = m[1].toUpperCase(), N = m[2], suf = (m[3] || parts[i + 1] || '').toLowerCase();
+    if (suf === 'sphere') return line + '스피어' + N;
+    if (suf === '' || suf === 'r') return line + L + N;
+    if (suf === 'rx') return line + 'RX' + N;
+    return line + L + N + '-' + suf.toUpperCase();
+  }
+  return String(name);
+}
+
+/* ================= 상태 ================= */
+const DEFAULT_CORE = [
+  { name: 'Phonak Audeo I90-Sphere', abbr: '스피어90' },
+  { name: 'Phonak Audeo I50-R', abbr: 'I50' },
+  { name: 'Phonak Audeo L70-R', abbr: 'L70' },
+  { name: 'Phonak Audeo L50-R', abbr: 'L50' }
+];
+const state = {
+  fileName: '', index: null,
+  selCust: [], selYears: new Set(), selMM: new Set(),
+  core: [], manual: new Map(), matches: [], keyNames: new Set(),
+  sort: new Map(), views: new Map(), dirty: new Map(), nextId: 1
+};
+
+/* ================= 엑셀 파싱 ================= */
+const normHdr = s => String(s == null ? '' : s).toLowerCase().replace(/[\s_\-.:()\/·]/g, '');
+const SKIP_RE = /요약|summary|subtotal|소계|총계|전체|grand|total/i;
+const TOTAL_LABEL = /^(총\s*합계|합계|총계|소계|grand\s*total|total|subtotal)$|요약/i;
+
+function classifyHeader(cell) {
+  const h = normHdr(cell);
+  if (!h) return null;
+  const isCode = /코드|code|번호|^id$/.test(h);
+  const isItem = /품목|제품|모델|item|product|material|sku/.test(h);
+  const isCust = /납품처|거래처|고객|customer|dealer|딜러|판매처/.test(h);
+  if (isCode && isItem) return 'itemCode';
+  if (isCode) return isCust || !isItem ? 'custCode' : 'itemCode';
+  if (isCust) return 'custName';
+  if (isItem) return 'itemName';
+  return null;
+}
+function findHeader(aoa) {
+  for (let r = 0; r < Math.min(aoa.length, 40); r++) {
+    const row = aoa[r] || [], cols = {};
+    row.forEach((v, c) => { const k = classifyHeader(v); if (k && cols[k] === undefined) cols[k] = c; });
+    if (cols.custName === undefined && cols.custCode !== undefined) cols.custName = cols.custCode;
+    if (cols.custName !== undefined) return { h: r, cols };
+  }
+  return null;
+}
+const yearLabel = s => { const m = /y\s*(\d{4})/i.exec(s) || /^\s*(\d{4})\s*$/.exec(s); return m ? 'Y' + m[1] : ''; };
+const asMM = v => {
+  if (typeof v === 'number' && Number.isInteger(v) && v >= 1 && v <= 12) return v;
+  if (typeof v === 'string' && /^\s*\d{1,2}\s*$/.test(v)) { const n = +v; if (n >= 1 && n <= 12) return n; }
+  return 0;
+};
+
+function makeBuilder() {
+  const custs = new Map(), itemNames = new Map(), itemYears = new Set(), mmSeen = new Set(), yearsSeen = new Set();
+  const cust = (code, name) => {
+    const key = code || name;
+    let c = custs.get(key);
+    if (!c) {
+      c = { key, code, name, search: (name + ' ' + code + ' ' + name.replace(/\s/g, '')).toLowerCase(), yearSales: new Map(), yearUnits: new Map(), items: new Map() };
+      custs.set(key, c);
+    }
+    return c;
+  };
+  return {
+    custs, itemNames, itemYears, mmSeen, yearsSeen,
+    addYear(code, name, y, s, u, hasU) { const c = cust(code, name); c.yearSales.set(y, (c.yearSales.get(y) || 0) + s); if (hasU) c.yearUnits.set(y, (c.yearUnits.get(y) || 0) + (u || 0)); yearsSeen.add(y); },
+    addItem(code, name, item, icode, y, mm, s, u) {
+      const c = cust(code, name);
+      let ym = c.items.get(y); if (!ym) { ym = new Map(); c.items.set(y, ym); }
+      let it = ym.get(item);
+      if (!it) { it = { name: item, code: icode, s: new Float64Array(13), u: new Float64Array(13) }; ym.set(item, it); }
+      it.s[mm] += s; it.u[mm] += u;
+      itemYears.add(y); mmSeen.add(mm);
+      if (!itemNames.has(item)) itemNames.set(item, icode || '');
+    }
+  };
+}
+
+function parseSheet(sheetName, aoa, b, meta) {
+  const hdr = findHeader(aoa);
+  if (!hdr) return { ok: false, text: `'${sheetName}': 납품처명 컬럼을 찾지 못해 건너뜀` };
+  const { h, cols } = hdr, hrow = aoa[h] || [];
+  const isItem = cols.itemName !== undefined;
+  const idCols = new Set(Object.values(cols));
+  const ncol = aoa.slice(0, h + 1).reduce((m, r) => Math.max(m, (r || []).length), 0);
+
+  // 세로(평면) 형식 감지: Sales / Fiscal Year 같은 컬럼이 헤더 행에 있는 경우
+  const fc = {};
+  hrow.forEach((v, c) => {
+    const n = normHdr(v);
+    if (/^(sales|매출|매출액|매출금액)$/.test(n) && fc.s === undefined) fc.s = c;
+    else if (/^(unit|units|수량|판매량|판매수량)$/.test(n) && fc.u === undefined) fc.u = c;
+    else if (/^(fiscalyear|회계연도|연도|year|fy)$/.test(n) && fc.y === undefined) fc.y = c;
+    else if (/^(fiscalmm|fiscalmonth|회계월|month|mm)$/.test(n) && fc.m === undefined) fc.m = c;
+  });
+  const codeOf = r => str(r[cols.custCode]), nameOf = r => str(r[cols.custName]);
+  let lastCode = '', lastName = '';
+  const resolveCust = r => {
+    let code = cols.custCode !== undefined && cols.custCode !== cols.custName ? codeOf(r) : '', name = nameOf(r);
+    if (TOTAL_LABEL.test(code) || TOTAL_LABEL.test(name)) return null;
+    if (!code && !name) { code = lastCode; name = lastName; } else { if (!name) name = code; lastCode = code; lastName = name; }
+    return name ? { code, name } : null;
+  };
+  const itemOf = r => str(r[cols.itemName]);
+  const icodeOf = r => cols.itemCode !== undefined ? str(r[cols.itemCode]) : '';
+
+  if (fc.s !== undefined && fc.y !== undefined) {
+    let n = 0;
+    for (let r = h + 1; r < aoa.length; r++) {
+      const row = aoa[r]; if (!row) continue;
+      const cu = resolveCust(row); if (!cu) continue;
+      const y = yearLabel(str(row[fc.y])); if (!y) continue;
+      const s = toNum(row[fc.s]), u = fc.u !== undefined ? toNum(row[fc.u]) : 0;
+      b.addYear(cu.code, cu.name, y, s, u, fc.u !== undefined); meta.yearHdr.add(y); meta.hasYearSheet = true;
+      if (isItem && fc.m !== undefined) {
+        const mm = asMM(row[fc.m]); const it = itemOf(row);
+        if (mm && it) { b.addItem(cu.code, cu.name, it, icodeOf(row), y, mm, s, u); meta.itemHdrYears.add(y); meta.mmHdr.add(mm); }
+      }
+      n++;
+    }
+    return { ok: true, text: `'${sheetName}': 세로 형식(헤더 ${h + 1}행), ${n}행` };
+  }
+
+  // 피벗 형식: 헤더 위쪽 행들의 라벨을 가로로 채워서 (측정값 / 연도 / 월)을 컬럼마다 판별
+  const filled = [];
+  for (let r = 0; r < h; r++) {
+    let last = ''; filled[r] = [];
+    for (let c = 0; c < ncol; c++) { const v = str((aoa[r] || [])[c]); if (v) last = v; filled[r][c] = last; }
+  }
+  const dcols = [], yset = new Set(), mset = new Set();
+  for (let c = 0; c < ncol; c++) {
+    if (idCols.has(c)) continue;
+    const labs = []; for (let r = 0; r < h; r++) labs.push(filled[r][c]);
+    labs.push(str(hrow[c]));
+    if (SKIP_RE.test(labs.join('|'))) continue;
+    let m = '';
+    for (const l of labs) { if (/sales|매출/i.test(l)) { m = 's'; break; } if (/unit|수량|판매량/i.test(l)) { m = 'u'; break; } }
+    let y = ''; for (let i = labs.length - 1; i >= 0 && !y; i--) y = yearLabel(labs[i]);
+    let mm = 0; for (let r = h; r >= 0 && !mm; r--) mm = asMM((aoa[r] || [])[c]);
+    if (!m || !y) continue;
+    if (isItem && !mm) continue;
+    dcols.push({ c, m, y, mm }); yset.add(y); if (isItem) mset.add(mm);
+  }
+  if (!dcols.length) return { ok: false, text: `'${sheetName}': 매출/수량 컬럼을 찾지 못해 건너뜀` };
+  if (isItem) { yset.forEach(y => meta.itemHdrYears.add(y)); mset.forEach(m => meta.mmHdr.add(m)); }
+  else { yset.forEach(y => meta.yearHdr.add(y)); meta.hasYearSheet = true; }
+
+  let n = 0;
+  for (let r = h + 1; r < aoa.length; r++) {
+    const row = aoa[r]; if (!row) continue;
+    const cu = resolveCust(row); if (!cu) continue;
+    let item = '', icode = '';
+    if (isItem) { item = itemOf(row); if (!item || TOTAL_LABEL.test(item)) continue; icode = icodeOf(row); }
+    for (const d of dcols) {
+      const v = row[d.c]; if (v == null || v === '') continue;
+      const x = toNum(v);
+      if (isItem) b.addItem(cu.code, cu.name, item, icode, d.y, d.mm, d.m === 's' ? x : 0, d.m === 'u' ? x : 0);
+      else if (d.m === 's') b.addYear(cu.code, cu.name, d.y, x, 0, false);
+      else b.addYear(cu.code, cu.name, d.y, 0, x, true);
+    }
+    n++;
+  }
+  const yl = [...yset].sort().join('·');
+  return { ok: true, text: isItem
+    ? `'${sheetName}' → 품목 시트 (헤더 ${h + 1}행, ${yl}, Fiscal MM ${[...mset].sort((a,b)=>a-b).join('·')}, 데이터 ${n}행)`
+    : `'${sheetName}' → 연도별 매출 시트 (헤더 ${h + 1}행, ${yl}, 데이터 ${n}행)` };
+}
+
+function finalizeIndex(b, meta) {
+  if (!meta.hasYearSheet) {
+    for (const c of b.custs.values()) for (const [y, m] of c.items) {
+      let s = 0, u = 0; for (const it of m.values()) for (let k = 1; k <= 12; k++) { s += it.s[k]; u += it.u[k]; }
+      c.yearSales.set(y, s); c.yearUnits.set(y, u); b.yearsSeen.add(y);
+    }
+  }
+  const custList = [...b.custs.values()].sort((a, c) => a.name.localeCompare(c.name, 'ko'));
+  let years = new Set([...meta.yearHdr, ...b.yearsSeen]);
+  if (!years.size) years = new Set([...meta.itemHdrYears, ...b.itemYears]);
+  const mms = [...new Set([...meta.mmHdr, ...b.mmSeen])].sort((a, c) => a - c);
+  const iy = new Set([...meta.itemHdrYears, ...b.itemYears]);
+  const targetYear = iy.has(TARGET_DEFAULT) ? TARGET_DEFAULT : (iy.size ? [...iy].sort().pop() : TARGET_DEFAULT);
+  const itemNames = [...b.itemNames.keys()].sort((a, c) => a.localeCompare(c, 'ko'));
+  const itemInfo = itemNames.map(n => ({ name: n, code: b.itemNames.get(n), norm: normName(n), toks: toks(n), joined: toks(n).join('') }));
+  const cnt = new Map(); itemNames.forEach(n => { const k = shortName(n); cnt.set(k, (cnt.get(k) || 0) + 1); });
+  const short = new Map(); itemNames.forEach(n => { const k = shortName(n); short.set(n, cnt.get(k) > 1 ? n : k); });   // 겹치면 원래 이름 유지
+  return { custs: b.custs, custList, years: [...years].sort(), mms, targetYear, itemNames, itemInfo, short };
+}
+
+function parseWorkbook(wb) {
+  const b = makeBuilder();
+  const meta = { yearHdr: new Set(), itemHdrYears: new Set(), mmHdr: new Set(), hasYearSheet: false };
+  const report = [];
+  for (const sn of wb.SheetNames) {
+    const aoa = XLSX.utils.sheet_to_json(wb.Sheets[sn], { header: 1, raw: true, defval: null, blankrows: false });
+    report.push(parseSheet(sn, aoa, b, meta));
+  }
+  return { index: finalizeIndex(b, meta), report };
+}
+
+/* ================= 품목 매칭 ================= */
+const normName = s => String(s == null ? '' : s).toLowerCase().replace(/[^0-9a-z\u3131-\u318e\uac00-\ud7a3]/g, '');
+function toks(s) {
+  const raw = String(s == null ? '' : s).toLowerCase().split(/[^0-9a-z\u3131-\u318e\uac00-\ud7a3]+/).filter(Boolean);
+  const out = [];
+  for (const t of raw) {
+    if (t === 'r' && out.length && /\d$/.test(out[out.length - 1])) out[out.length - 1] += 'r';   // 70 R → 70r
+    else out.push(t);
+  }
+  return out;
+}
+const tokenHit = (t, it) => it.toks.includes(t) || (t.length >= 3 && it.joined.includes(t));
+function bigrams(s) { const m = new Map(); for (let i = 0; i < s.length - 1; i++) { const g = s.substr(i, 2); m.set(g, (m.get(g) || 0) + 1); } return m; }
+function dice(a, b) {
+  if (a.length < 2 || b.length < 2) return a === b ? 1 : 0;
+  const A = bigrams(a), B = bigrams(b); let inter = 0;
+  for (const [g, n] of A) if (B.has(g)) inter += Math.min(n, B.get(g));
+  return (2 * inter) / ((a.length - 1) + (b.length - 1));
+}
+function matchCore(core) {
+  const manual = state.manual.get(core.id);
+  if (manual) return { stage: 'manual', items: manual.slice(), cands: [] };
+  const nc = normName(core.name), tk = toks(core.name), infos = state.index ? state.index.itemInfo : [];
+  if (!nc || !infos.length) return { stage: 'none', items: [], cands: [] };
+  let hit = infos.filter(it => it.norm.includes(nc));
+  if (hit.length) return { stage: 1, items: hit.map(i => i.name), cands: [] };
+  if (tk.length) {
+    hit = infos.filter(it => tk.every(t => tokenHit(t, it)));
+    if (hit.length) return { stage: 2, items: hit.map(i => i.name), cands: [] };
+  }
+  const cands = infos.map(it => {
+    const frac = tk.length ? tk.filter(t => t.length >= 2 && tokenHit(t, it)).length / tk.length : 0;
+    return { name: it.name, score: 0.5 * dice(nc, it.norm) + 0.5 * frac };
+  }).filter(x => x.score >= 0.3).sort((a, b) => b.score - a.score).slice(0, 3);
+  return { stage: 'none', items: [], cands };
+}
+function computeMatches() {
+  state.matches = state.core.map(matchCore);
+  state.keyNames = new Set(); state.matches.forEach(m => m.items.forEach(n => state.keyNames.add(n)));
+}
+
+/* ================= 뷰 계산 ================= */
+function buildView(key) {
+  const idx = state.index, c = idx.custs.get(key), T = idx.targetYear;
+  const sel = [...state.selMM];
+  const yearVals = [...state.selYears].sort().map(y => ({ y, v: c.yearSales.has(y) ? c.yearSales.get(y) : null, u: c.yearUnits.has(y) ? c.yearUnits.get(y) : null }));
+  const map = c.items.get(T);
+  const abbrMap = new Map();
+  state.core.forEach((core, i) => { const m = state.matches[i]; if (!m || !core.abbr) return; m.items.forEach(n => { if (!abbrMap.has(n)) abbrMap.set(n, core.abbr); }); });
+  const lab = n => abbrMap.get(n) || idx.short.get(n) || n;
+  const rows = []; let total = 0;
+  if (map) for (const it of map.values()) {
+    let s = 0, u = 0; for (const m of sel) { s += it.s[m]; u += it.u[m]; }
+    total += s;
+    rows.push({ name: it.name, label: lab(it.name), code: it.code, sales: s, units: u, asp: u > 0 ? s / u : null, months: it.u, share: 0, key: state.keyNames.has(it.name) });
+  }
+  rows.forEach(r => { r.share = total > 0 ? r.sales / total : 0; });
+  const byName = new Map(rows.map(r => [r.name, r]));
+  const mk = (label, names, sub, multi) => {
+    let s = 0, u = 0; const mu = new Float64Array(13);
+    for (const n of names) { const r = byName.get(n), it = map && map.get(n); if (!r || !it) continue; s += r.sales; u += r.units; for (let m = 1; m <= 12; m++) mu[m] += it.u[m]; }
+    let last = 0; for (let m = 12; m >= 1; m--) if (mu[m] > 0) { last = m; break; }
+    return { label, sub, multi, sales: s, units: u, asp: u > 0 ? s / u : null, recentMm: last, recentU: last ? mu[last] : 0, has: last > 0, matched: names };
+  };
+  const entries = [];
+  state.core.forEach((core, i) => {
+    const names = state.matches[i] ? state.matches[i].items : [];
+    const label = core.abbr || shortName(core.name);
+    if (core.combine !== false || names.length <= 1) { entries.push(mk(label, names, '', false)); return; }
+    const sold = names.filter(n => mk(label, [n], n).has);
+    if (!sold.length) entries.push(mk(label, [], '', false));
+    else sold.forEach(n => entries.push(mk(label, [n], lab(n), true)));
+  });
+  return { key, cust: c, T, yearVals, rows, total, entries };
+}
+const getView = key => { let v = state.views.get(key); if (!v) { v = buildView(key); state.views.set(key, v); } return v; };
+
+/* ================= 렌더: 결과 ================= */
+const emptyBox = (t, d, small) => `<div class="empty${small ? ' small' : ''}"><b>${esc(t)}</b>${d ? esc(d) : ''}</div>`;
+
+function sortedRows(view) {
+  const s = state.sort.get(view.key) || { col: 'sales', dir: -1 };
+  const val = r => s.col === 'name' ? r.label : s.col === 'units' ? r.units : s.col === 'sales' || s.col === 'share' ? r.sales : s.col === 'asp' ? r.asp : r.months[+s.col.slice(1)];
+  return view.rows.slice().sort((a, b) => {
+    const x = val(a), y = val(b);
+    if (x == null && y == null) return 0; if (x == null) return 1; if (y == null) return -1;
+    const c = s.col === 'name' ? x.localeCompare(y, 'ko') : x - y;
+    return c ? c * s.dir : b.sales - a.sales;
+  });
+}
+
+function tableHtml(view) {
+  const s = state.sort.get(view.key) || { col: 'sales', dir: -1 };
+  const rows = sortedRows(view);
+  const hasCode = false;
+  let max = 0; for (const r of rows) for (const m of state.selMM) if (r.months[m] > max) max = r.months[m];
+  const th = (col, label, cls = '') => `<th class="${cls}" aria-sort="${s.col === col ? (s.dir > 0 ? 'ascending' : 'descending') : 'none'}"><button type="button" data-action="sort" data-col="${col}">${label}</button></th>`;
+  let h = `<table class="t"><thead><tr>${th('name', '품목명', 'name l')}${th('units', '판매량(대)')}${th('sales', '매출 금액(원)')}${th('share', '매출 비중')}${th('asp', 'ASP(원)')}`;
+  for (const m of MM_ORDER) h += th('m' + m, monthLabel(m), state.selMM.has(m) ? '' : 'off');
+  h += '</tr></thead><tbody>';
+  for (const r of rows) {
+    const share = r.share <= 0 ? '0%' : (r.share * 100 < 0.5 ? '&lt;1%' : Math.round(r.share * 100) + '%');
+    h += `<tr class="${r.key ? 'key' : ''}"><td class="name"><div class="nm">${r.key ? '<span class="badge">핵심</span>' : ''}<span>${esc(r.label)}</span></div></td>`;
+    h += `<td>${fmt(r.units)}</td><td>${fmt(r.sales)}</td><td>${share}</td><td>${r.asp == null ? '-' : fmt(r.asp)}</td>`;
+    for (const m of MM_ORDER) {
+      const v = r.months[m];
+      if (!state.selMM.has(m)) { h += `<td class="m z off">${v ? fmt(v) : ''}</td>`; continue; }
+      if (!v) { h += '<td class="m z"></td>'; continue; }
+      const b = Math.min(9, Math.floor(Math.sqrt(v / (max || 1)) * 10));   // Material Blue 50~900 (10단계)
+      h += `<td class="m b${b}">${fmt(v)}</td>`;
+    }
+    h += '</tr>';
+  }
+  return h + '</tbody></table>';
+}
+
+function coreSummaryHtml(view) {
+  if (!view.entries.length) return '';
+  let h = `<div class="core-sum"><h4>핵심 품목 요약</h4><div class="scroll"><table class="t mini"><thead><tr><th class="plain l name">핵심 품목</th><th class="plain">판매량(대)</th><th class="plain">매출 금액(원)</th><th class="plain">ASP(원)</th><th class="plain">가장 최근 판매 월</th><th class="plain">해당 월 수량(대)</th></tr></thead><tbody>`;
+  for (const e of view.entries) {
+    const lbl = `<td class="l name"><b>${esc(e.label)}</b>${e.multi && e.sub ? `<span class="sub">${esc(e.sub)}</span>` : ''}</td>`;
+    h += e.has
+      ? `<tr>${lbl}<td>${fmt(e.units)}</td><td>${fmt(e.sales)}</td><td>${e.asp == null ? '-' : fmt(e.asp)}</td><td>${monthLabel(e.recentMm)}</td><td>${fmt(e.recentU)}</td></tr>`
+      : `<tr>${lbl}<td class="none" colspan="5">판매 없음</td></tr>`;
+  }
+  return h + '</tbody></table></div></div>';
+}
+
+function blockHtml(key) {
+  const view = getView(key), c = view.cust;
+  const hasYear = view.yearVals.some(y => y.v != null);
+  let a;
+  if (!view.yearVals.length) a = emptyBox('데이터가 없습니다', '연도를 하나 이상 선택해 주세요.', true);
+  else if (!hasYear) a = emptyBox('데이터가 없습니다', '', true);
+  else a = '<div class="ycards">' + view.yearVals.map(y => `<div class="ycard"><span class="yl" title="${yearTip(y.y)}">${esc(y.y)}</span><strong>${fmt((y.v || 0) / 10000)}<small>만원</small></strong>${y.u == null ? '' : `<span class="yu">${fmt(y.u)}대 판매</span>`}</div>`).join('') + '</div>';
+  let b;
+  if (!state.selMM.size) b = emptyBox('데이터가 없습니다', 'Fiscal MM을 하나 이상 선택해 주세요.', true);
+  else if (!view.rows.length) b = emptyBox('데이터가 없습니다', `${view.T} 품목 데이터가 없는 거래처입니다.`, true);
+  else b = `${coreSummaryHtml(view)}<div class="tbar"><h3>${esc(view.T)} 품목별 상세<small>매출 금액 큰 순 · 헤더를 눌러 정렬</small></h3><button class="btn small" data-action="csv">CSV 다운로드</button></div><div class="scroll tblwrap">${tableHtml(view)}</div><p class="foot">흐리게 표시된 월은 선택에서 제외되어 판매량·매출·ASP·비중 계산에 반영되지 않습니다. 핵심 품목의 &lsquo;가장 최근 판매 월&rsquo;은 ${esc(view.T)} 전체 월 기준입니다.</p>`;
+  return `<section class="cust" data-key="${esc(key)}"><header class="cust-head"><h2>${esc(c.name)}</h2>${c.code ? `<span class="code">${esc(c.code)}</span>` : ''}</header><h3>연도별 매출<small>만원 단위 반올림</small></h3>${a}${b.startsWith('<div class="empty') ? `<h3>${esc(view.T)} 품목별 상세</h3>` : ''}${b}</section>`;
+}
+
+function renderResults() {
+  const box = $('#results'), idx = state.index;
+  if (!idx) { box.innerHTML = ''; return; }
+  if (!idx.custList.length) { box.innerHTML = emptyBox('데이터가 없습니다', '업로드한 파일에서 거래처 데이터를 찾지 못했습니다. 같은 형식의 데이터가 채워진 파일을 올려 주세요.'); return; }
+  if (!state.selCust.length) { box.innerHTML = emptyBox('거래처를 선택해 주세요', '위 검색창에서 거래처를 고르면 거래처별 분석이 표시됩니다. 여러 곳을 고르면 거래처마다 따로 보여드립니다.'); return; }
+  box.innerHTML = state.selCust.map(blockHtml).join('');
+}
+
+/* ================= 브리핑 ================= */
+function briefText(view) {
+  const c = view.cust, T = view.T, lines = [];
+  if (!view.yearVals.length) lines.push(`${c.name}의 연도가 선택되지 않았습니다.`);
+  else {
+    const ys = view.yearVals.map(y => y.y.toLowerCase()).join(', '), vs = view.yearVals.map(y => fmt((y.v || 0) / 10000)).join(', ');
+    lines.push(`${c.name}의 ${ys} 매출은 ${view.yearVals.length > 1 ? '각 ' : ''}${vs}만원입니다.`);
+  }
+  // 핵심 품목은 약칭으로 표기 (여러 품목이 한 핵심 품목에 합산 설정이면 하나로 묶음)
+  const abbrOf = new Map();
+  state.core.forEach((core, i) => {
+    const m = state.matches[i], label = core.abbr || core.name;
+    if (!m) return;
+    m.items.forEach(n => {
+      if (abbrOf.has(n)) return;
+      if (core.combine !== false || m.items.length <= 1) abbrOf.set(n, { gk: 'core:' + core.id, label });
+      else abbrOf.set(n, { gk: 'item:' + n, label: `${label}(${n})` });
+    });
+  });
+  const groups = new Map();
+  for (const r of view.rows) {
+    if (!(r.sales > 0)) continue;
+    const ab = abbrOf.get(r.name), gk = ab ? ab.gk : 'item:' + r.name;
+    let g = groups.get(gk); if (!g) { g = { label: ab ? ab.label : r.label, sales: 0, units: 0 }; groups.set(gk, g); }
+    g.sales += r.sales; g.units += r.units;
+  }
+  const top = [...groups.values()].sort((x, y) => y.sales - x.sales);
+  const aspT = g => g.units > 0 ? `ASP ${fmt(g.sales / g.units)}원` : 'ASP 산출 불가';
+  if (!top.length) lines.push(`${T} 품목별 판매 내역이 없습니다.`);
+  else if (top.length === 1) lines.push(`가장 많이 판매된 품목은 ${top[0].label}이고 ${aspT(top[0])}입니다.`);
+  else lines.push(`가장 많이 판매된 품목은 ${top[0].label}이고 ${aspT(top[0])}/그 다음 품목은 ${top[1].label}, ${aspT(top[1])}입니다.`);
+  const es = view.entries;
+  if (es.length) {
+    const nm = e => e.multi ? `${e.label}(${e.sub})` : e.label;
+    const body = e => e.has ? `${monthLabel(e.recentMm)}에 ${fmt(e.recentU)}대 판매` : `${T} 판매 내역 없음`;
+    const n = es.length, parts = es.map((e, i) => {
+      if (n === 1) return `${nm(e)}의 경우 ${body(e)}${e.has ? '되었습니다.' : '.'}`;
+      if (i === 0) return `${nm(e)}의 경우에는 ${body(e)}${e.has ? '되었고,' : ','}`;
+      if (i < n - 1) return `${nm(e)}${eunneun(nm(e))} ${body(e)}${e.has ? '되었으며,' : ','}`;
+      return `${nm(e)}${eunneun(nm(e))} ${body(e)}${e.has ? '되었습니다.' : '.'}`;
+    });
+    lines.push(parts.join(' '));
+  }
+  return lines.join('\n');
+}
+
+function renderBriefing() {
+  const box = $('#briefBody'), idx = state.index;
+  if (!idx || !idx.custList.length) { box.innerHTML = emptyBox('데이터가 없습니다', '', true); return; }
+  if (!state.selCust.length) { box.innerHTML = emptyBox('거래처를 선택하면 브리핑 문구가 만들어집니다', '', true); return; }
+  box.innerHTML = state.selCust.map(k => {
+    const v = getView(k), dirty = state.dirty.has(k), txt = dirty ? state.dirty.get(k) : briefText(v);
+    return `<div class="brief" data-key="${esc(k)}"><div class="brief-h"><h3>${esc(v.cust.name)}</h3><div class="btns">${dirty ? '<span class="foot">직접 수정한 내용이 유지되고 있습니다</span>' : ''}<button class="btn small" data-action="regen">다시 생성</button><button class="btn small primary" data-action="copy">복사</button></div></div><textarea rows="6" spellcheck="false">${esc(txt)}</textarea></div>`;
+  }).join('');
+}
+
+/* ================= 렌더: 선택 UI ================= */
+function renderChips() {
+  const idx = state.index; if (!idx) return;
+  $('#chips').innerHTML = state.selCust.map(k => {
+    const c = idx.custs.get(k);
+    return `<span class="chip">${esc(c ? c.name : k)}<button type="button" data-action="rm-cust" data-key="${esc(k)}" aria-label="${esc(c ? c.name : k)} 선택 해제">×</button></span>`;
+  }).join('');
+}
+let comboItems = [], comboAct = -1;
+function renderCombo() {
+  const idx = state.index, ul = $('#custList'); if (!idx) return;
+  const q = $('#custSearch').value.trim().toLowerCase(), q2 = q.replace(/\s/g, '');
+  const sel = new Set(state.selCust), res = []; let total = 0;
+  for (const c of idx.custList) if (!q || c.search.includes(q) || c.search.includes(q2)) { total++; if (res.length < 200) res.push(c); }
+  comboItems = res; comboAct = Math.min(comboAct, res.length - 1);
+  ul.innerHTML = res.length
+    ? res.map((c, i) => `<li role="option" data-key="${esc(c.key)}" aria-selected="${sel.has(c.key)}" class="${i === comboAct ? 'act' : ''}"><span>${esc(c.name)}</span><span class="code">${esc(c.code)}</span></li>`).join('') + (total > res.length ? `<li class="more">${total - res.length}곳 더 있음 — 검색어를 더 입력해 주세요</li>` : '')
+    : `<li class="empty">${idx.custList.length ? '검색 결과가 없습니다' : '데이터가 없습니다'}</li>`;
+}
+function openCombo(open) { $('#custList').hidden = !open; $('#custSearch').setAttribute('aria-expanded', String(open)); if (open) renderCombo(); }
+function toggleCust(key) {
+  const i = state.selCust.indexOf(key);
+  if (i >= 0) state.selCust.splice(i, 1); else state.selCust.push(key);
+  renderChips(); renderCombo(); refresh();
+}
+function renderYearMM() {
+  const idx = state.index; if (!idx) return;
+  $('#yearChecks').innerHTML = idx.years.length ? idx.years.map(y => `<label class="check" title="${yearTip(y)}"><input type="checkbox" data-year="${esc(y)}" ${state.selYears.has(y) ? 'checked' : ''}>${esc(y)}</label>`).join('') : '<span class="foot">연도를 찾지 못했습니다</span>';
+  $('#mmChecks').innerHTML = idx.mms.length ? idx.mms.map(m => `<label class="check"><input type="checkbox" data-mm="${m}" ${state.selMM.has(m) ? 'checked' : ''}>${monthLabel(m)}</label>`).join('') : '<span class="foot">Fiscal MM을 찾지 못했습니다</span>';
+}
+
+/* ================= 핵심 품목 설정 ================= */
+function saveCore() { try { localStorage.setItem('salesDash.core.v4', JSON.stringify(state.core.map(c => ({ name: c.name, abbr: c.abbr, combine: c.combine !== false })))); } catch (e) {} }
+function loadCore() {
+  let list = null;
+  try { const raw = localStorage.getItem('salesDash.core.v4'); if (raw) list = JSON.parse(raw); } catch (e) {}
+  if (!Array.isArray(list)) list = DEFAULT_CORE;
+  state.core = list.map(c => ({ id: state.nextId++, name: str(c.name), abbr: str(c.abbr), combine: c.combine !== false }));
+}
+function renderMatchStatus(i) {
+  const core = state.core[i], m = state.matches[i], el = $('#mstat-' + core.id); if (!el) return;
+  let h = '';
+  if (!core.name) h = '<span class="bad">핵심 품목명을 입력해 주세요</span>';
+  else if (m && m.items.length) {
+    const label = m.stage === 'manual' ? '직접 지정' : m.stage === 1 ? '이름 일치' : '단어 일치';
+    h = `<span class="ok">✓ ${label}</span> ` + m.items.map(n => `<span class="mm">${esc(n)}</span>`).join('');
+    h += '<div class="line">';
+    if (m.items.length > 1) h += `<label class="check" style="padding:2px 8px"><input type="checkbox" data-combine="${core.id}" ${core.combine !== false ? 'checked' : ''}>${m.items.length}개 품목 합산해서 보기</label>`;
+    if (m.stage === 'manual') h += `<button class="link" data-action="core-unpick" data-id="${core.id}">지정 해제(자동 매칭으로)</button>`;
+    h += '</div>';
+  } else {
+    h = '<span class="bad">일치하는 품목 없음</span>';
+    if (m && m.cands.length) h += '<div class="line" style="margin-top:2px">비슷한 후보:</div>' + m.cands.map(c => `<button class="cand" data-action="core-pick" data-id="${core.id}" data-name="${esc(c.name)}">${esc(c.name)}</button>`).join('');
+    else h += '<div class="line">비슷한 후보도 없어 &lsquo;판매 없음&rsquo;으로 표시됩니다.</div>';
+  }
+  if (state.index && state.index.itemNames.length && m && m.stage !== 'manual') h += `<div class="line"><input class="pick" list="itemList" data-pick="${core.id}" placeholder="품목 직접 지정…" aria-label="품목 직접 지정"></div>`;
+  el.innerHTML = h;
+}
+function renderCoreSettings() {
+  $('#coreRows').innerHTML = state.core.map((c, i) => `<div class="corerow" data-id="${c.id}">
+    <label class="f"><span>핵심 품목명</span><input data-f="name" value="${esc(c.name)}" placeholder="예: Audeo Lumity 70-R"></label>
+    <label class="f"><span>브리핑용 약칭</span><input data-f="abbr" value="${esc(c.abbr)}" placeholder="예: 루미티 70"></label>
+    <div class="mstat" id="mstat-${c.id}"></div>
+    <button class="icon" data-action="core-del" data-id="${c.id}" aria-label="삭제">×</button></div>`).join('') || '<p class="foot">핵심 품목이 없습니다. 아래에서 추가해 주세요.</p>';
+  state.core.forEach((_, i) => renderMatchStatus(i));
+  updateCoreSummary();
+}
+function updateCoreSummary() {
+  const ok = state.matches.filter(m => m && m.items.length).length;
+  $('#coreSummary').textContent = `${state.core.length}개 설정 · ${ok}개 매칭됨` + (state.core.length - ok ? ` · ${state.core.length - ok}개 확인 필요` : '');
+}
+
+/* ================= 갱신 ================= */
+function refresh() { state.views.clear(); renderResults(); renderBriefing(); }
+function coreChanged(rerenderRows) {
+  computeMatches(); saveCore();
+  if (rerenderRows) renderCoreSettings(); else { state.core.forEach((_, i) => renderMatchStatus(i)); updateCoreSummary(); }
+  refresh();
+}
+const coreChangedDebounced = debounce(() => coreChanged(false), 220);
+
+/* ================= 데이터 로드 ================= */
+function loadIndex(index, fileName, report, warns) {
+  state.index = index; state.fileName = fileName;
+  state.selCust = []; state.selYears = new Set(index.years); state.selMM = new Set(index.mms);
+  state.manual.clear(); state.sort.clear(); state.dirty.clear(); state.views.clear();
+  $('#upload').hidden = true; $('#app').hidden = false; $('#msg').innerHTML = '';
+  $('#itemList').innerHTML = index.itemNames.slice(0, 3000).map(n => `<option value="${esc(n)}">`).join('');
+  $('#filebar').innerHTML = `<span class="fname">${esc(fileName)}</span><span class="meta">거래처 ${fmt(index.custList.length)}곳 · 품목 ${fmt(index.itemNames.length)}개 · 연도 ${esc(index.years.join(', ') || '-')} · 품목 기준 연도 ${esc(index.targetYear)}</span><span class="sp"></span><button class="btn small" data-action="pick-file">다른 파일 선택</button><button class="btn small" data-action="sample">샘플 데이터로 보기</button>`;
+  const w = (warns || []).map(t => `<p class="notice">${esc(t)}</p>`).join('');
+  $('#warns').innerHTML = (report && report.length ? `<details class="foot" style="margin:-8px 0 12px"><summary>파일 인식 결과 보기</summary>${report.map(r => `<div>${r.ok ? '✓' : '⚠'} ${esc(r.text)}</div>`).join('')}</details>` : '') + w;
+  $('#custSearch').value = '';
+  renderChips(); renderYearMM(); computeMatches(); renderCoreSettings(); refresh();
+}
+async function handleFile(file) {
+  if (!file) return;
+  if (typeof XLSX === 'undefined') { $('#msg').innerHTML = '<p class="notice err">엑셀 라이브러리(SheetJS)를 불러오지 못했습니다. 인터넷 연결을 확인한 뒤 다시 열어 주세요. (샘플 데이터는 그대로 사용할 수 있습니다)</p>'; return; }
+  $('#busy').hidden = false;
+  await new Promise(r => setTimeout(r, 40));
+  try {
+    const buf = await file.arrayBuffer();
+    const wb = XLSX.read(buf, { type: 'array' });
+    const { index, report } = parseWorkbook(wb);
+    const warns = [];
+    if (!report.some(r => r.ok)) warns.push('시트에서 납품처명/매출 컬럼을 인식하지 못했습니다. 컬럼 구성을 확인해 주세요.');
+    loadIndex(index, file.name, report, warns);
+  } catch (err) {
+    console.error(err);
+    $('#msg').innerHTML = `<p class="notice err">파일을 읽는 중 문제가 발생했습니다: ${esc(err && err.message || err)}</p>`;
+  } finally { $('#busy').hidden = true; }
+}
+
+/* ================= 샘플 데이터 ================= */
+function loadSample() {
+  let seed = 20260920; const rnd = () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+  const items = [
+    ['PHONAK AUDEO L70R', 'P-7001', 1900000, 1.0], ['Phonak Audeo I90 Sphere', 'P-9001', 2900000, 1.3], ['Phonak Audeo I70-Sphere', 'P-7002', 2500000, 0.9],
+    ['Audeo Phonak I90-R', 'P-9002', 2700000, 1.0], ['Phonak Audeo I70-R', 'P-7003', 2200000, 0.8], ['Phonak Audeo I50-R', 'P-5001', 1500000, 0.9],
+    ['Audeo Phonak L50 R', 'P-5002', 1250000, 0.6], ['Phonak Audeo L90-R', 'P-9003', 2600000, 0.8], ['Phonak Audeo L70-312', 'P-7004', 1750000, 0.3],
+    ['Moxi V9-R', 'M-9001', 2300000, 0.5], ['Moxi S9 RX', 'M-9002', 2100000, 0.4], ['Vista V5-R', 'V-5001', 1800000, 0.35]
+  ];
+  const custs = [['C1001', '가온보청기 강남점 (가상)', 7, 1.4], ['C1002', '나래이비인후과 (가상)', 7, 0.9], ['C1003', '다솜청각센터 (가상)', 6, 0.6]];
+  const b = makeBuilder();
+  custs.forEach(([code, name, maxM, scale], ci) => {
+    let total = 0;
+    items.forEach(([iname, icode, price, w], ii) => {
+      if (ci === 2 && iname === 'Moxi V9-R') return;      // 3번 거래처는 V9 판매 없음
+      for (let m = 1; m <= maxM; m++) {
+        if (ci === 1 && iname === 'Phonak Audeo I50-R' && m > 4) continue;   // 2번 거래처의 I50은 Fiscal 4(7월)까지만
+        const u = rnd() < 0.22 ? 0 : Math.floor(rnd() * 9 * w * scale) + (rnd() < 0.5 ? 1 : 0);
+        if (u <= 0) continue;
+        const s = Math.round(u * price * (0.96 + rnd() * 0.08) / 1000) * 1000;
+        b.addItem(code, name, iname, icode, TARGET_DEFAULT, m, s, u); total += s;
+      }
+    });
+    const tu = Math.round(total / 2200000);
+    b.addYear(code, name, 'Y2627', total, tu, true);
+    { const k = 1.5 + rnd() * .8; b.addYear(code, name, 'Y2526', Math.round(total * k / 1000) * 1000, Math.round(tu * k), true); }
+    { const k = 1.0 + rnd() * .8; b.addYear(code, name, 'Y2425', Math.round(total * k / 1000) * 1000, Math.round(tu * k), true); }
+  });
+  const meta = { yearHdr: new Set(['Y2425', 'Y2526', 'Y2627']), itemHdrYears: new Set([TARGET_DEFAULT]), mmHdr: new Set(), hasYearSheet: true };
+  const index = finalizeIndex(b, meta);
+  loadIndex(index, '샘플 데이터 (가상)', [{ ok: true, text: '내장 샘플: 거래처 3곳, 품목 10개, 연도 Y2425·Y2526·Y2627' }], []);
+  state.selCust = index.custList.slice(0, 2).map(c => c.key);
+  renderChips(); refresh();
+}
+
+/* ================= CSV / 복사 ================= */
+function download(name, text) {
+  const blob = new Blob(['\ufeff' + text], { type: 'text/csv;charset=utf-8' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+function csvFor(key) {
+  const v = getView(key), rows = sortedRows(v), hasCode = false;
+  const q = x => { let s = String(x); if (typeof x === 'string' && /^[=+\-@]/.test(s)) s = "'" + s; return '"' + s.replace(/"/g, '""') + '"'; };
+  const lines = [['품목명', '약칭', '판매량(대)', '매출 금액(원)', '매출 비중(%)', 'ASP(원)', ...MM_ORDER.map(monthLabel)]];
+  for (const r of rows) lines.push([r.name, r.label, Math.round(r.units), Math.round(r.sales), Math.round(r.share * 100), r.asp == null ? '-' : Math.round(r.asp), ...MM_ORDER.map(m => state.selMM.has(m) ? r.months[m] : '')]);
+  return lines.map(l => l.map(q).join(',')).join('\r\n');
+}
+async function copyText(text, btn) {
+  try { await navigator.clipboard.writeText(text); }
+  catch (e) { const t = document.createElement('textarea'); t.value = text; document.body.appendChild(t); t.select(); try { document.execCommand('copy'); } catch (_) {} t.remove(); }
+  const old = btn.textContent; btn.textContent = '복사됨 ✓'; setTimeout(() => { btn.textContent = old; }, 1400);
+}
+
+/* ================= 이벤트 ================= */
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-action]');
+  if (!t) return;
+  const a = t.dataset.action;
+  if (a === 'pick-file') $('#fileInput').click();
+  else if (a === 'sample') loadSample();
+  else if (a === 'theme') {
+    const el = document.documentElement, cur = el.dataset.theme || '';
+    const next = cur === '' ? 'dark' : cur === 'dark' ? 'light' : '';
+    if (next) el.dataset.theme = next; else delete el.dataset.theme;
+    t.textContent = '테마: ' + (next === 'dark' ? '다크' : next === 'light' ? '라이트' : '자동');
+  }
+  else if (a === 'rm-cust') toggleCust(t.dataset.key);
+  else if (a === 'clear-cust') { state.selCust = []; renderChips(); renderCombo(); refresh(); }
+  else if (a === 'toggle-mm') {
+    const all = state.index && state.index.mms.every(m => state.selMM.has(m));
+    state.selMM = all ? new Set() : new Set(state.index.mms); renderYearMM(); refresh();
+  }
+  else if (a === 'sort') {
+    const key = t.closest('.cust').dataset.key, col = t.dataset.col, cur = state.sort.get(key) || { col: 'sales', dir: -1 };
+    state.sort.set(key, cur.col === col ? { col, dir: -cur.dir } : { col, dir: col === 'name' ? 1 : -1 });
+    t.closest('.cust').querySelector('.tblwrap').innerHTML = tableHtml(getView(key));
+  }
+  else if (a === 'csv') {
+    const key = t.closest('.cust').dataset.key, v = getView(key);
+    download(`${v.cust.name.replace(/[\\/:*?"<>|]/g, '_')}_${v.T}_품목별.csv`, csvFor(key));
+  }
+  else if (a === 'copy') copyText(t.closest('.brief').querySelector('textarea').value, t);
+  else if (a === 'regen') { state.dirty.delete(t.closest('.brief').dataset.key); renderBriefing(); }
+  else if (a === 'core-add') { state.core.push({ id: state.nextId++, name: '', abbr: '', combine: true }); coreChanged(true); const ins = document.querySelectorAll('#coreRows [data-f="name"]'); if (ins.length) ins[ins.length - 1].focus(); }
+  else if (a === 'core-del') { state.core = state.core.filter(c => c.id !== +t.dataset.id); state.manual.delete(+t.dataset.id); coreChanged(true); }
+  else if (a === 'core-reset') { state.core = DEFAULT_CORE.map(c => ({ id: state.nextId++, name: c.name, abbr: c.abbr, combine: true })); state.manual.clear(); coreChanged(true); }
+  else if (a === 'core-pick') { state.manual.set(+t.dataset.id, [t.dataset.name]); coreChanged(false); }
+  else if (a === 'core-unpick') { state.manual.delete(+t.dataset.id); coreChanged(false); }
+});
+document.addEventListener('change', e => {
+  const t = e.target;
+  if (t.id === 'fileInput') { handleFile(t.files[0]); t.value = ''; return; }
+  if (t.dataset.year) { t.checked ? state.selYears.add(t.dataset.year) : state.selYears.delete(t.dataset.year); refresh(); }
+  else if (t.dataset.mm) { const m = +t.dataset.mm; t.checked ? state.selMM.add(m) : state.selMM.delete(m); refresh(); }
+  else if (t.dataset.combine) { const c = state.core.find(x => x.id === +t.dataset.combine); if (c) { c.combine = t.checked; coreChanged(false); } }
+  else if (t.dataset.pick) {
+    const v = t.value.trim();
+    if (state.index.itemNames.includes(v)) { state.manual.set(+t.dataset.pick, [v]); coreChanged(false); }
+  }
+});
+document.addEventListener('input', e => {
+  const t = e.target;
+  if (t.id === 'custSearch') { openCombo(true); debouncedCombo(); }
+  else if (t.dataset.f && t.closest('.corerow')) {
+    const c = state.core.find(x => x.id === +t.closest('.corerow').dataset.id); if (!c) return;
+    c[t.dataset.f] = t.value.trim();
+    if (t.dataset.f === 'name') state.manual.delete(c.id);
+    coreChangedDebounced();
+  }
+  else if (t.tagName === 'TEXTAREA' && t.closest('.brief')) state.dirty.set(t.closest('.brief').dataset.key, t.value);
+});
+const debouncedCombo = debounce(() => { comboAct = -1; renderCombo(); }, 160);
+
+const search = $('#custSearch'), list = $('#custList');
+search.addEventListener('focus', () => openCombo(true));
+search.addEventListener('keydown', e => {
+  if (e.key === 'ArrowDown') { e.preventDefault(); openCombo(true); comboAct = Math.min(comboAct + 1, comboItems.length - 1); renderCombo(); scrollAct(); }
+  else if (e.key === 'ArrowUp') { e.preventDefault(); comboAct = Math.max(comboAct - 1, 0); renderCombo(); scrollAct(); }
+  else if (e.key === 'Enter') { e.preventDefault(); const c = comboItems[comboAct < 0 ? 0 : comboAct]; if (c) toggleCust(c.key); }
+  else if (e.key === 'Escape') openCombo(false);
+  else if (e.key === 'Backspace' && !search.value && state.selCust.length) toggleCust(state.selCust[state.selCust.length - 1]);
+});
+function scrollAct() { const el = list.querySelector('li.act'); if (el) el.scrollIntoView({ block: 'nearest' }); }
+list.addEventListener('mousedown', e => e.preventDefault());
+list.addEventListener('click', e => { const li = e.target.closest('li[data-key]'); if (li) toggleCust(li.dataset.key); });
+document.addEventListener('mousedown', e => { if (!e.target.closest('#comboWrap')) openCombo(false); });
+
+/* 드래그 앤 드롭 */
+window.addEventListener('dragover', e => { e.preventDefault(); document.body.classList.add('drag'); });
+window.addEventListener('dragleave', e => { if (!e.relatedTarget) document.body.classList.remove('drag'); });
+window.addEventListener('drop', e => { e.preventDefault(); document.body.classList.remove('drag'); const f = e.dataTransfer && e.dataTransfer.files[0]; if (f) handleFile(f); });
+
+loadCore();
+window.__dash = { state, parseWorkbook, matchCore, briefText, getView, loadSample, handleFile }; // 검증용
+})();
+</script>
+</body>
+</html>
